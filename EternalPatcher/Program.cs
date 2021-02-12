@@ -4,54 +4,62 @@ using System.Windows;
 
 namespace EternalPatcher
 {
-    /// <summary>
-    /// Main WPF Application class
-    /// </summary>
-    public partial class App : Application
+    public class EternalPatcher
     {
-        /// <summary>
-        /// Fired on startup
-        /// </summary>
-        /// <param name="e">startup event args</param>
-        protected override void OnStartup(StartupEventArgs e)
+        public static void Main(string[] args)
         {
-            base.OnStartup(e);
-
             // Used for command line option parsing
             bool performUpdate = false;
             string filePath = string.Empty;
+            bool patch = false;
 
             // Parse command line arguments
-            if (e.Args != null & e.Args.Length > 0)
+            if (args != null & args.Length > 0)
             {
-                for (var i = 0; i < e.Args.Length; i++)
+                for (var i = 0; i < args.Length; i++)
                 {
-                    if (e.Args[i].Equals("--patch", StringComparison.InvariantCultureIgnoreCase) && string.IsNullOrEmpty(filePath))
+                    if (args[i].Equals("--patch", StringComparison.InvariantCultureIgnoreCase) && string.IsNullOrEmpty(filePath))
                     {
-                        if (i + 1 < e.Args.Length)
+                        patch = true;
+                        if (i + 1 < args.Length)
                         {
-                            filePath = e.Args[i + 1];
+                            filePath = args[i + 1];
                             continue;
                         }
                     }
-                    else if (e.Args[i].Equals("--update", StringComparison.InvariantCultureIgnoreCase) && !performUpdate)
+                    else if (args[i].Equals("--update", StringComparison.InvariantCultureIgnoreCase) && !performUpdate)
                     {
                         performUpdate = true;
                         continue;
                     }
+                    else
+                    {
+                        if (patch == false)
+                        {
+                            Console.WriteLine("Unknown argument! Run 'mono EternalPatcher.exe' to see all the possible arguments.");
+                            System.Environment.Exit(1);
+                        }
+                    }
                 }
-            }
-
-            // Only show the UI when not using the command-line version
-            if (string.IsNullOrEmpty(filePath) && !performUpdate)
-            {
-                var window = new MainWindow();
-                window.ShowDialog();
             }
             else
             {
-                // Allocate a console
-                AllocConsole();
+                Console.WriteLine("EternalPatcher by proteh, adapted for Mono by PowerBall253.");
+                Console.WriteLine("");
+                Console.WriteLine("Usage:");
+                Console.WriteLine("");
+                Console.WriteLine("mono EternalPatcher.exe (--update) (--patch /path/to/DOOMEternalx64vk.exe)");
+                Console.WriteLine("    --update        Updates the patch definitions.");
+                Console.WriteLine("    --patch         Patches the game executable using the definitions.");
+                Console.WriteLine("");
+                System.Environment.Exit(1);
+            }
+            if (performUpdate == false & String.IsNullOrEmpty(filePath))
+            {
+                Console.WriteLine("No executable was specified for patching!");
+                System.Environment.Exit(1);
+
+            }
 
                 // Update first if required
                 try
@@ -75,14 +83,14 @@ namespace EternalPatcher
                 catch (Exception ex)
                 {
                     Console.Error.WriteLine($"An error occured while checking for updates: {ex}");
-                    Application.Current.Shutdown(1);
+                    System.Environment.Exit(1);
                     return;
                 }
 
                 // Stop here if no path was specified
                 if (string.IsNullOrEmpty(filePath))
                 {
-                    Application.Current.Shutdown(0);
+                    System.Environment.Exit(0);
                     return;
                 }
 
@@ -96,7 +104,7 @@ namespace EternalPatcher
                 catch (Exception ex)
                 {
                     Console.Error.WriteLine($"An error occured while loading the patch definitions file: {ex}");
-                    Application.Current.Shutdown(1);
+                    System.Environment.Exit(1);
                     return;
                 }
 
@@ -104,7 +112,7 @@ namespace EternalPatcher
                 if (!Patcher.AnyPatchesLoaded())
                 {
                     Console.Out.WriteLine($"Unable to patch: 0 patches loaded");
-                    Application.Current.Shutdown(1);
+                    System.Environment.Exit(1);
                     return;
                 }
 
@@ -119,7 +127,7 @@ namespace EternalPatcher
                     if (gameBuild == null)
                     {
                         Console.Out.WriteLine($"Unable to apply patches: unsupported game build detected");
-                        Application.Current.Shutdown(1);
+                        System.Environment.Exit(1);
                         return;
                     }
 
@@ -128,7 +136,7 @@ namespace EternalPatcher
                 catch (Exception ex)
                 {
                     Console.Error.WriteLine($"An error occured while checking the game build: {ex}");
-                    Application.Current.Shutdown(1);
+                    System.Environment.Exit(1);
                     return;
                 }
 
@@ -145,7 +153,6 @@ namespace EternalPatcher
                         {
                             successes++;
                         }
-
                         Console.WriteLine($"{patchResult.Patch.Description} : {(patchResult.Success ? "Success" : "Failure")}");
                     }
 
@@ -154,19 +161,10 @@ namespace EternalPatcher
                 catch (Exception ex)
                 {
                     Console.Error.WriteLine($"An error occured while patching the game executable: {ex}");
-                    Application.Current.Shutdown(1);
+                    System.Environment.Exit(1);
                     return;
                 }
-
-                Application.Current.Shutdown(successes == gameBuild.Patches.Count ? 0 : 1);
-            }
+                System.Environment.Exit(successes == gameBuild.Patches.Count ? 0 : 1);
         }
-
-        /// <summary>
-        /// Allocates a console for the current process
-        /// </summary>
-        /// <returns>true if successful, false when not</returns>
-        [DllImport("kernel32.dll", SetLastError = true, ExactSpelling = true)]
-        public static extern bool AllocConsole();
     }
 }

@@ -17,6 +17,12 @@ namespace EternalPatcher
         /// <returns>the MD5 checksum of the file at the given file path</returns>
         public static string GetFileMD5Checksum(string filePath)
         {
+            if (!File.Exists(filePath))
+            {
+                Console.WriteLine("Game executable not found! Did you provide the correct filepath?");
+                System.Environment.Exit(1);
+            }
+
             using (var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read))
             {
                 using (var md5 = MD5.Create())
