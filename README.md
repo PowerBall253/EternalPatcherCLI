@@ -1,22 +1,19 @@
-# EternalPatcher
+# EternalPatcherCLI
 
 
 **DOOM Eternal patcher for modding purposes.**
 
-This tool patches the DOOM Eternal game executable for modding purposes. The patches are defined in a "patch definitions file" that is automatically downloaded and updated from the update server specified in the configuration file.
+This tool patches the DOOM Eternal game executable for modding purposes. The patches are defined in a "patch definitions file" that is automatically downloaded and updated from the update server specified in the configuration file. It is modified to include only the CLI, to make it compatible with [Mono](https://www.mono-project.com "Mono Project").
 
 **Official DOOM 2016 and DOOM Eternal modding Discord server:** https://discord.gg/W9t4nZa
 
 ### Features
 
- - User friendly GUI to make patching the game easy.
  - Backs up the game executable before applying patches (optional)
  - Automatic updates for the patch definitions.
  - Can be used through the command-line, no need for the GUI.
 
-### Command-line usage
-
-This tool can also be used through the command-line without using the GUI. The following arguments can be used:
+### Usage
 
 ```
 --update - Checks for updates and downloads them if available
